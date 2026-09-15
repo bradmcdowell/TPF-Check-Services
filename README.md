@@ -2,8 +2,13 @@
 
 **Script Overview & Purpose**
 
+## Overview & Purpose
+
+> **Warning: Lab Use Only**  
+> This script is designed strictly for lab environments where SQL Server and CyberArk Trust Protection Foundation (TPF) reside on the same host. **Do not use this script in a production environment.**
+
 ### Why It's Needed
-If you have the SQL server and TPF installed on the same server, sometimes during system reboots, **SQL Server** and **CyberArk (TPF) services** often fail to start in a timely manner or in the correct sequence. Dependent services can fail or crash if IIS and CyberArk try to initialize before SQL Server is fully ready to accept connections. This script handles startup timing and dependency ordering automatically.
+If you are running an unsupported configuration where you have the SQL server and TPF installed on the same server, sometimes during system reboots, **SQL Server** and **CyberArk (TPF) services** often fail to start in a timely manner or in the correct sequence. Dependent services can fail or crash if IIS and CyberArk try to initialize before SQL Server is fully ready to accept connections. This script handles startup timing and dependency ordering automatically.
 
 ### What the Script Does
 * **Verifies & Starts SQL First**: Checks `MSSQLSERVER`; if stopped, starts it and waits **90 seconds** so database engines fully initialize.
