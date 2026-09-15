@@ -6,7 +6,7 @@ param (
 
 # Directory and dynamic log file path
 $ScriptFolder = "C:\Scripts\TPF-Check-Services"
-$logDirectory = $ScriptFolder
+$logDirectory = $ScriptFolder # Adjust this if you want logs in a different directory
 $today = Get-Date -Format "yyyy-MM-dd"
 $logFilePath = Join-Path -Path $logDirectory -ChildPath "TPP_Service_Monitor_$today.log"
 
