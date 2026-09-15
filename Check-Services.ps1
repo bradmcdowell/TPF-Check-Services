@@ -1,5 +1,11 @@
+[CmdletBinding()]
+param (
+    [switch]$AddTaskScheduler
+)
+
 # Directory and dynamic log file path
-$logDirectory = "C:\Scripts\TPF-Check-Services"
+$ScriptFolder = "C:\Scripts\TPF-Check-Services"
+$logDirectory = $ScriptFolder
 $today = Get-Date -Format "yyyy-MM-dd"
 $logFilePath = Join-Path -Path $logDirectory -ChildPath "TPP_Service_Monitor_$today.log"
 
@@ -33,6 +39,50 @@ function Write-Log {
 
     # Append to local log file
     Add-Content -Path $logFilePath -Value $formattedLog
+}
+
+# Helper function to register Scheduled Task
+function Install-CheckServicesTask {
+    $taskName = "TPF Check Services"
+    
+    # Dynamically build the script path based on $ScriptFolder and current script filename
+    $scriptName = "Check-Services.ps1"
+    $targetScriptPath = Join-Path -Path $ScriptFolder -ChildPath $scriptName
+
+    # Ensure running with Administrator privileges
+    $currentPrincipal = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
+    if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        Write-Log "Administrator privileges are required to register this Scheduled Task." "ERROR"
+        return
+    }
+
+    # Task Action
+    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-ExecutionPolicy Bypass -File `"$targetScriptPath`""
+
+    # Task Triggers: 15-minute delay after boot AND Daily at 05:49 AM
+    $bootTrigger = New-ScheduledTaskTrigger -AtStartup
+    $bootTrigger.Delay = 'PT15M'
+    $dailyTrigger = New-ScheduledTaskTrigger -Daily -At "05:49:25 AM"
+
+    # Task Principal: SYSTEM Account with Highest Privileges
+    $principal = New-ScheduledTaskPrincipal -UserId "NT AUTHORITY\SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+
+    # Task Settings
+    $settings = New-ScheduledTaskSettingsSet -AllowStartOnDemand -ExecutionTimeLimit (New-TimeSpan -Hours 72) -Priority 7
+
+    try {
+        Register-ScheduledTask -TaskName $taskName -Action $action -Trigger @($bootTrigger, $dailyTrigger) -Principal $principal -Settings $settings -Force | Out-Null
+        Write-Log "Scheduled Task '$taskName' successfully created pointing to: $targetScriptPath" "SUCCESS"
+    } catch {
+        Write-Log "Failed to register Scheduled Task. Error: $_" "ERROR"
+    }
+}
+
+# --- Handle -AddTaskScheduler Switch ---
+if ($AddTaskScheduler) {
+    Write-Log "Registering Scheduled Task..." "INFO"
+    Install-CheckServicesTask
+    exit
 }
 
 # Define the services to monitor
