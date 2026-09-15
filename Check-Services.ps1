@@ -67,8 +67,8 @@ function Install-CheckServicesTask {
     # Task Principal: SYSTEM Account with Highest Privileges
     $principal = New-ScheduledTaskPrincipal -UserId "NT AUTHORITY\SYSTEM" -LogonType ServiceAccount -RunLevel Highest
 
-    # Task Settings
-    $settings = New-ScheduledTaskSettingsSet -AllowStartOnDemand -ExecutionTimeLimit (New-TimeSpan -Hours 72) -Priority 7
+    # Task Settings (Removed invalid -AllowStartOnDemand parameter)
+    $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Hours 72) -Priority 7
 
     try {
         Register-ScheduledTask -TaskName $taskName -Action $action -Trigger @($bootTrigger, $dailyTrigger) -Principal $principal -Settings $settings -Force | Out-Null
