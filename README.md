@@ -1,7 +1,5 @@
 # TPF-Check-Services
 
-**Script Overview & Purpose**
-
 ## Overview & Purpose
 
 > **Warning: Lab Use Only**  
