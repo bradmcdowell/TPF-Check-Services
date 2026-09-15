@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param (
-    [switch]$AddTaskScheduler
+    [switch]$AddTaskScheduler,
+    [switch]$RemoveTaskScheduler
 )
 
 # Directory and dynamic log file path
@@ -78,10 +79,43 @@ function Install-CheckServicesTask {
     }
 }
 
+# Helper function to remove Scheduled Task
+function Unregister-CheckServicesTask {
+    $taskName = "TPF Check Services"
+
+    # Ensure running with Administrator privileges
+    $currentPrincipal = [Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
+    if (-not $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        Write-Log "Administrator privileges are required to remove this Scheduled Task." "ERROR"
+        return
+    }
+
+    # Check if task exists before attempting removal
+    $task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+
+    if ($task) {
+        try {
+            Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction Stop
+            Write-Log "Scheduled Task '$taskName' successfully removed." "SUCCESS"
+        } catch {
+            Write-Log "Failed to remove Scheduled Task '$taskName'. Error: $_" "ERROR"
+        }
+    } else {
+        Write-Log "Scheduled Task '$taskName' does not exist." "WARNING"
+    }
+}
+
 # --- Handle -AddTaskScheduler Switch ---
 if ($AddTaskScheduler) {
     Write-Log "Registering Scheduled Task..." "INFO"
     Install-CheckServicesTask
+    exit
+}
+
+# --- Handle -RemoveTaskScheduler Switch ---
+if ($RemoveTaskScheduler) {
+    Write-Log "Removing Scheduled Task..." "INFO"
+    Unregister-CheckServicesTask
     exit
 }
 
