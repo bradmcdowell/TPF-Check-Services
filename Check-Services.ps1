@@ -120,7 +120,7 @@ if ($RemoveTaskScheduler) {
 }
 
 # Define the services to monitor
-$services = @("CyberArk Trust Protection Foundation", "Cyberark Log Server")
+$services = @("Trust Protection Foundation", "Trust Protection Foundation Log Server")
 
 Write-Log "Starting service status check..." "INFO"
 
